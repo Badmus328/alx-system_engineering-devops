@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+#  A Bash Script that installs and configures
+#+ an nginx server
+#+ then configures redirection for the page redirect_me/
+
+echo "Initiating installation and web server start-up..."
+# update and install nginx
+apt -y update
+apt install -y nginx
+
+# adjust ufw
+ufw allow 'Nginx HTTP'
+
+# start nginx service
+service nginx start
+
+echo "Configuring web server to serve files..."
+# create index page with string
+echo "Hello World!" > /var/www/html/index.html
+# ensure serving on port 80
+#sed -i 's/80/8080/g' /etc/nginx/sites-enabled/default
+sed -i 's/^\tlisten\s[[:digit:]]\+\s/\tlisten 80 /g' /etc/nginx/sites-enabled/default
+
+sed -i 's/^\tlisten\s\[::\]:[[:digit:]]\+\s/\tlisten [::]:80 /g' /etc/nginx/sites-enabled/default
+
+echo "Configuring redirect_me page redirection ..."
+# redirect the page /redirect_me
+
+new_line="\tlocation / {\n\t\trewrite ^/redirect_me/$ https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;\n"
+sed -i "s~^\tlocation / {~$new_line~g" /etc/nginx/sites-enabled/default
+
+service nginx restart
